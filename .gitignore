@@ -1,0 +1,27 @@
+# Backend (Python)
+backend/venv/
+backend/__pycache__/
+backend/*.pyc
+backend/.env
+backend/.env.local
+backend/.pytest_cache/
+backend/.mypy_cache/
+
+# Flutter / Dart
+frontend/epic_ticket/.dart_tool/
+frontend/epic_ticket/build/
+frontend/epic_ticket/.flutter-plugins
+frontend/epic_ticket/.flutter-plugins-dependencies
+frontend/epic_ticket/pubspec.lock
+frontend/epic_ticket/.idea/
+frontend/epic_ticket/*.iml
+frontend/epic_ticket/android/.gradle/
+frontend/epic_ticket/android/local.properties
+frontend/epic_ticket/ios/Pods/
+frontend/epic_ticket/ios/.symlinks/
+frontend/epic_ticket/macos/Pods/
+frontend/epic_ticket/windows/flutter/ephemeral/
+
+# OS / Editor / Log
+.DS_Store
+Thumbs.db
