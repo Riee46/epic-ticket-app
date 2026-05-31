@@ -7,6 +7,11 @@ backend/.env.local
 backend/.pytest_cache/
 backend/.mypy_cache/
 
+# Python cache (global)
+__pycache__/
+*.pyc
+*.pyo
+
 # Flutter / Dart
 frontend/epic_ticket/.dart_tool/
 frontend/epic_ticket/build/

@@ -8,7 +8,7 @@ load_dotenv()
 # Ganti dengan kredensial PostgreSQL Anda
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql+asyncpg://postgres:password@localhost:5432/epic_ticket"
+    "postgresql://postgres:Ary@24f1lkom@db.aczqiwhkconuwnyoslpc.supabase.co:5432/postgres?sslmode=require"
 )
 
 engine = create_async_engine(DATABASE_URL, echo=True)
