@@ -5,11 +5,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Ganti dengan kredensial PostgreSQL Anda
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql://postgres:Ary@24f1lkom@db.aczqiwhkconuwnyoslpc.supabase.co:5432/postgres?sslmode=require"
-)
+DATABASE_URL = os.getenv("DATABASE_URL")
+print("Connecting to:", DATABASE_URL.replace("Ary%4024f1lkom", "***"))  # hide password
 
 engine = create_async_engine(DATABASE_URL, echo=True)
 AsyncSessionLocal = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
