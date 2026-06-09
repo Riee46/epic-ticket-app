@@ -4,7 +4,10 @@ from passlib.context import CryptContext
 from dotenv import load_dotenv
 import os
 
-load_dotenv()
+# Load .env dynamically from the backend root folder
+base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+dotenv_path = os.path.join(base_dir, ".env")
+load_dotenv(dotenv_path)
 
 SECRET_KEY = os.getenv("SECRET_KEY", "fallback-secret-key-change-this-1234567890")
 ALGORITHM = "HS256"
