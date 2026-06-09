@@ -34,6 +34,10 @@ class ErrorDetail(BaseModel):
     message: str
 
 # --- User schemas ---
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
 class UserCreate(BaseModel):
     username: str
     email: EmailStr
