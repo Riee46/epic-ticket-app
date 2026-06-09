@@ -1,4 +1,3 @@
 class AppConfig {
-  static const String baseUrl =
-      'https://vercel.com/ariea-wijayas-projects/epic-ticket-app-server/CMtPbtmFQuaUJcwrNwgksSrro3EC';
+  static const String baseUrl = 'https://epic-ticket-app-server.vercel.app';
 }
