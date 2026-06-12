@@ -18,3 +18,6 @@ async def get_my_qr_codes(
     )
     qr_codes = result.scalars().all()
     return qr_codes
+@router.get("/me")
+async def get_current_user_info(current_user: User = Depends(get_current_user)):
+    return {"id": current_user.id, "username": current_user.username, "is_admin": current_user.is_admin}

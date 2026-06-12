@@ -1,8 +1,8 @@
-import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/ticket_model.dart';
 import '../constants.dart';
+import '../models/ticket_model.dart';
 
 class ApiService {
   final String baseUrl = AppConfig.baseUrl;
@@ -20,10 +20,18 @@ class ApiService {
     }
   }
 
+  Future<void> logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('token');
+  }
+
+  // ========== USER ENDPOINTS ==========
   Future<List<TicketModel>> fetchTickets() async {
     final headers = await _getHeaders();
-    final response =
-        await http.get(Uri.parse('$baseUrl/tickets'), headers: headers);
+    final response = await http.get(
+      Uri.parse('$baseUrl/tickets'),
+      headers: headers,
+    );
     if (response.statusCode == 200) {
       final Map<String, dynamic> jsonResponse = json.decode(response.body);
       if (jsonResponse['status'] == 'success') {
@@ -76,8 +84,10 @@ class ApiService {
 
   Future<List<dynamic>> getMyQRCodes() async {
     final headers = await _getHeaders();
-    final response =
-        await http.get(Uri.parse('$baseUrl/user/tickets/qr'), headers: headers);
+    final response = await http.get(
+      Uri.parse('$baseUrl/user/tickets/qr'),
+      headers: headers,
+    );
     if (response.statusCode == 200) {
       return json.decode(response.body);
     } else {
@@ -87,5 +97,51 @@ class ApiService {
 
   String _formatRupiah(int price) {
     return 'Rp ${price.toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (match) => '${match[1]}.')}';
+  }
+
+  // ========== ADMIN ENDPOINTS ==========
+  Future<List<dynamic>> getPendingTransactions() async {
+    final headers = await _getHeaders();
+    final response = await http.get(
+      Uri.parse('$baseUrl/admin/transactions/pending'),
+      headers: headers,
+    );
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Gagal mengambil transaksi pending');
+    }
+  }
+
+  Future<String> verifyPayment(int transactionId, String action) async {
+    final headers = await _getHeaders();
+    final response = await http.post(
+      Uri.parse('$baseUrl/admin/verify-payment'),
+      headers: headers,
+      body: json.encode({'transaction_id': transactionId, 'action': action}),
+    );
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return data['message'] ?? 'Success';
+    } else {
+      final error = json.decode(response.body);
+      throw Exception(error['detail'] ?? 'Verification failed');
+    }
+  }
+
+  Future<String> scanTicket(String ticketCode) async {
+    final headers = await _getHeaders();
+    final response = await http.post(
+      Uri.parse('$baseUrl/admin/scan'),
+      headers: headers,
+      body: json.encode({'ticket_code': ticketCode}),
+    );
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return '✅ Tiket valid! Pengguna: ${data['user_id']}';
+    } else {
+      final error = json.decode(response.body);
+      throw Exception(error['detail'] ?? 'Invalid ticket');
+    }
   }
 }

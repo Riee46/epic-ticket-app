@@ -10,7 +10,8 @@ class NavigationScreen extends StatefulWidget {
 }
 
 class _NavigationScreenState extends State<NavigationScreen> {
-  final double venueLat = -8.123456; // Ganti dengan koordinat sesungguhnya
+  // Ganti dengan koordinat venue sebenarnya (Sevendream City)
+  final double venueLat = -8.123456;
   final double venueLng = 113.678901;
 
   Future<void> _openNavigation() async {
@@ -55,22 +56,23 @@ class _NavigationScreenState extends State<NavigationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Navigasi ke Venue')),
+      appBar: AppBar(
+        title: const Text('Navigasi ke Venue'),
+        backgroundColor: const Color(0xFFC00000),
+      ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text('Arahkan ke Sevendream City'),
+            const Text('Arahkan ke Sevendream City',
+                style: TextStyle(color: Colors.white)),
             const SizedBox(height: 20),
             ElevatedButton.icon(
               onPressed: _openNavigation,
               icon: const Icon(Icons.map),
               label: const Text('Buka Peta & Navigasi'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFC00000),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              ),
+                  backgroundColor: const Color(0xFFC00000)),
             ),
           ],
         ),

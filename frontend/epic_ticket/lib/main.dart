@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'screens/welcome_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
-import 'screens/ticket_screen.dart';
+import 'screens/event_detail_screen.dart';
 import 'screens/my_tickets_screen.dart';
 import 'screens/navigation_screen.dart';
+import 'screens/admin_dashboard_screen.dart';
 import 'services/auth_service.dart';
 
 void main() => runApp(const MyApp());
@@ -35,7 +38,6 @@ class MyApp extends StatelessWidget {
           foregroundColor: Colors.white,
           elevation: 0,
         ),
-        // Perbaikan: gunakan CardThemeData (bukan CardTheme) dan hapus const karena BorderRadius.circular bukan konstanta
         cardTheme: CardThemeData(
           color: const Color(0xFF1A1A1A),
           elevation: 4,
@@ -86,9 +88,10 @@ class MyApp extends StatelessWidget {
         '/': (context) => const AuthWrapper(),
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
-        '/tickets': (context) => const TicketScreen(),
+        '/tickets': (context) => const EventDetailScreen(),
         '/my-tickets': (context) => const MyTicketsScreen(),
         '/navigation': (context) => const NavigationScreen(),
+        '/admin': (context) => const AdminDashboardScreen(),
       },
     );
   }
@@ -96,6 +99,11 @@ class MyApp extends StatelessWidget {
 
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
+
+  Future<bool> _isAdmin() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('is_admin') ?? false;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -107,9 +115,22 @@ class AuthWrapper extends StatelessWidget {
               body: Center(child: CircularProgressIndicator()));
         }
         if (snapshot.data == true) {
-          return const TicketScreen();
+          return FutureBuilder<bool>(
+            future: _isAdmin(),
+            builder: (context, adminSnap) {
+              if (adminSnap.connectionState == ConnectionState.waiting) {
+                return const Scaffold(
+                    body: Center(child: CircularProgressIndicator()));
+              }
+              if (adminSnap.data == true) {
+                return const AdminDashboardScreen();
+              } else {
+                return const EventDetailScreen();
+              }
+            },
+          );
         } else {
-          return const LoginScreen();
+          return const WelcomeScreen();
         }
       },
     );

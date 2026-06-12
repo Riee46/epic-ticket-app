@@ -25,7 +25,7 @@ class AuthService {
     }
   }
 
-  Future<String?> login(String username, String password) async {
+  Future<Map<String, dynamic>?> login(String username, String password) async {
     final response = await http.post(
       Uri.parse('$baseUrl/login-json'),
       headers: {'Content-Type': 'application/json'},
@@ -36,7 +36,7 @@ class AuthService {
       final token = data['access_token'];
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('token', token);
-      return token;
+      return {'token': token};
     } else {
       final error = json.decode(response.body)['detail'] ?? 'Login failed';
       throw Exception(error);
@@ -56,5 +56,20 @@ class AuthService {
   Future<bool> isLoggedIn() async {
     final token = await getToken();
     return token != null && token.isNotEmpty;
+  }
+
+  // Cek apakah user admin dengan memanggil endpoint admin
+  Future<bool> isAdmin() async {
+    final token = await getToken();
+    if (token == null) return false;
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/admin/transactions/pending'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
   }
 }
