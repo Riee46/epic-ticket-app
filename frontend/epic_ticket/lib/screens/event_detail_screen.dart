@@ -75,17 +75,24 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Banner image (placeholder)
-                Container(
-                  height: 200,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    image: const DecorationImage(
-                      image: NetworkImage('https://placehold.co/348x195'),
-                      fit: BoxFit.cover,
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
+                ClipRRect(
+  borderRadius: BorderRadius.circular(12),
+  child: Image.asset(
+    'assets/poster_konser.jpeg',
+    height: 200,
+    width: double.infinity,
+    fit: BoxFit.cover,
+    errorBuilder: (context, error, stackTrace) {
+      return Container(
+        height: 200,
+        color: Colors.grey[900],
+        child: const Center(
+          child: Icon(Icons.broken_image, color: Colors.grey, size: 50),
+        ),
+      );
+    },
+  ),
+),
                 Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
@@ -101,7 +108,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                       ),
                       const SizedBox(height: 8),
                       const Text(
-                        'Dari The Cloves & The Tobacco, dengan fasilitas lengkap, sound system berkualitas tinggi, dan pengalaman tak terlupakan.',
+                        'The Cloves & The Tobacco, Over Distorsion, Gugur Berkarat(Punk Rock), Redwine.',
                         style:
                             TextStyle(color: Color(0xFFE3BEB8), fontSize: 14),
                       ),
