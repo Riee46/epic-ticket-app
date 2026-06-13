@@ -103,6 +103,12 @@ async def get_all_pending_transactions(db: AsyncSession):
     )
     return result.scalars().all()
 
+async def get_all_paid_transactions(db: AsyncSession):
+    result = await db.execute(
+        select(Transaction).where(Transaction.status == "paid")
+    )
+    return result.scalars().all()
+
 async def get_transaction_by_id(db: AsyncSession, transaction_id: int):
     result = await db.execute(
         select(Transaction).where(Transaction.id == transaction_id)

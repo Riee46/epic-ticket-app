@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import 'admin_scan_screen.dart';
+import 'admin_sales_report_screen.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -73,20 +74,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       Navigator.push(
           context, MaterialPageRoute(builder: (_) => const AdminScanScreen()));
     } else if (index == 1) {
-      // Sales Report - bisa diisi nanti
-      showDialog(
-        context: context,
-        builder: (_) => AlertDialog(
-          title: const Text('Sales Report'),
-          content: const Text('Fitur sedang dalam pengembangan'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('OK'),
-            ),
-          ],
-        ),
-      );
+      // Sales Report
+      Navigator.push(
+          context, MaterialPageRoute(builder: (_) => const AdminSalesReportScreen()));
     } else if (index == 3) {
       // Event Settings
       showDialog(
@@ -103,6 +93,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         ),
       );
     }
+  }
+
+  String _formatRupiah(int price) {
+    return 'Rp ${price.toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (match) => '${match[1]}.')}';
   }
 
   @override
@@ -220,7 +214,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
-                        _buildStatCard('REVENUE TODAY', '\$$_totalRevenue', '+12%'),
+                        _buildStatCard('REVENUE TODAY', _formatRupiah(_totalRevenue), '+12%'),
                         const SizedBox(width: 16),
                         _buildStatCard('TICKETS SOLD', _totalTickets.toString(), '+5%'),
                         const SizedBox(width: 16),
@@ -306,7 +300,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
   Widget _buildStatCard(String label, String value, String change) {
     return Container(
-      width: 200,
+      width: 240,
       padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
           color: const Color(0xFF1E2020),
@@ -325,11 +319,18 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(value,
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 24,
-                        fontWeight: FontWeight.w700)),
+                Expanded(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(value,
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 24,
+                            fontWeight: FontWeight.w700)),
+                  ),
+                ),
+                const SizedBox(width: 12),
                 Text(change,
                     style: TextStyle(
                         color: change.contains('%')

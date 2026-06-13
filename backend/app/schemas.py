@@ -63,7 +63,7 @@ class TransactionOut(BaseModel):
     total_price: int
     status: str
     payment_proof_url: Optional[str] = None
-    timestamp: datetime
+    timestamp: Optional[datetime] = None
     model_config = ConfigDict(from_attributes=True)
 
 class VerifyPayment(BaseModel):
