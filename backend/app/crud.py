@@ -141,6 +141,7 @@ async def mark_qr_used(db: AsyncSession, qr_id: int):
         update(TicketQR)
         .where(TicketQR.id == qr_id)
         .values(used=True, used_at=func.now())
+    )
     await db.commit()
 
 # ========== Admin Stats ==========
