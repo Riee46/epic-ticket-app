@@ -14,20 +14,30 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   List<dynamic> _transactions = [];
   bool _loading = true;
   Map<int, bool> _processing = {};
+  int _selectedIndex = 0;
+  int _totalRevenue = 0;
+  int _totalTickets = 0;
+  int _pendingApproval = 0;
 
   @override
   void initState() {
     super.initState();
-    _fetchPendingTransactions();
+    _fetchDashboardData();
   }
 
-  Future<void> _fetchPendingTransactions() async {
+  Future<void> _fetchDashboardData() async {
     setState(() => _loading = true);
     try {
-      final data = await _apiService.getPendingTransactions();
-      setState(() => _transactions = data);
+      final transactions = await _apiService.getPendingTransactions();
+      final stats = await _apiService.getAdminStats();
+      setState(() {
+        _transactions = transactions;
+        _totalRevenue = stats['total_revenue'] ?? 0;
+        _totalTickets = stats['tickets_sold'] ?? 0;
+        _pendingApproval = stats['pending_approval'] ?? _transactions.length;
+      });
     } catch (e) {
-      // if error, maybe user is not admin
+      // ignore
     } finally {
       setState(() => _loading = false);
     }
@@ -37,18 +47,61 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     setState(() => _processing[id] = true);
     try {
       await _apiService.verifyPayment(id, action);
-      await _fetchPendingTransactions();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text('Transaction ${action}d'),
-            backgroundColor: Colors.green),
-      );
+      await _fetchDashboardData();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Transaction ${action}d'),
+              backgroundColor: Colors.green),
+        );
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        );
+      }
     } finally {
       setState(() => _processing.remove(id));
+    }
+  }
+
+  void _onItemTapped(int index) {
+    setState(() => _selectedIndex = index);
+    Navigator.pop(context); // close drawer
+    if (index == 2) {
+      Navigator.push(
+          context, MaterialPageRoute(builder: (_) => const AdminScanScreen()));
+    } else if (index == 1) {
+      // Sales Report - bisa diisi nanti
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('Sales Report'),
+          content: const Text('Fitur sedang dalam pengembangan'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    } else if (index == 3) {
+      // Event Settings
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('Event Settings'),
+          content: const Text('Fitur sedang dalam pengembangan'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
     }
   }
 
@@ -66,61 +119,64 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
-              await ApiService().logout();
-              Navigator.pushReplacementNamed(context, '/');
+              await _apiService.logout();
+              if (mounted) Navigator.pushReplacementNamed(context, '/');
             },
           ),
         ],
       ),
-      body: Row(
-        children: [
-          // Navigation drawer (simplified)
-          Container(
-            width: 260,
-            color: const Color(0xFF1E2020),
-            child: Column(
-              children: [
-                const SizedBox(height: 24),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  child: Row(
-                    children: [
-                      const CircleAvatar(
-                        backgroundColor: Color(0xFF8B0000),
-                        child: Icon(Icons.person, color: Color(0xFFFF907F)),
-                      ),
-                      const SizedBox(width: 16),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Text('Admin Portal',
-                              style: TextStyle(
-                                  color: Color(0xFFFFB4A8), fontSize: 16)),
-                          Text('System Controller',
-                              style: TextStyle(
-                                  color: Color(0xFFE3BEB8), fontSize: 12)),
-                        ],
-                      ),
+      drawer: Drawer(
+        backgroundColor: const Color(0xFF1E2020),
+        child: Column(
+          children: [
+            const SizedBox(height: 48), // Padding status bar
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              child: Row(
+                children: [
+                  const CircleAvatar(
+                    backgroundColor: Color(0xFF8B0000),
+                    child: Icon(Icons.person, color: Color(0xFFFF907F)),
+                  ),
+                  const SizedBox(width: 16),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: const [
+                      Text('Admin Portal',
+                          style: TextStyle(
+                              color: Color(0xFFFFB4A8), fontSize: 16)),
+                      Text('System Controller',
+                          style: TextStyle(
+                              color: Color(0xFFE3BEB8), fontSize: 12)),
                     ],
                   ),
-                ),
-                const Divider(color: Color(0x4C5A403C), thickness: 1),
-                _drawerItem('Dashboard', true),
-                _drawerItem('Sales Report', false),
-                _drawerItem('Scanner', false),
-                _drawerItem('Event Settings', false),
-              ],
+                ],
+              ),
             ),
-          ),
-          // Main content
-          Expanded(
-            child: SingleChildScrollView(
+            const Divider(color: Color(0x4C5A403C), thickness: 1),
+            _buildDrawerItem('Dashboard', 0, Icons.dashboard),
+            _buildDrawerItem('Sales Report', 1, Icons.bar_chart),
+            _buildDrawerItem('Scanner', 2, Icons.qr_code_scanner),
+            _buildDrawerItem('Event Settings', 3, Icons.settings),
+            const Spacer(),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                'Version 1.0',
+                style: TextStyle(
+                    color: const Color(0xFFE3BEB8).withOpacity(0.5),
+                    fontSize: 12),
+              ),
+            ),
+          ],
+        ),
+      ),
+      body: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Welcome card
+                  // Welcome Card
                   Container(
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
@@ -140,16 +196,16 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
-                              Text('Welcome back, Admin.',
+                            children: [
+                              const Text('Welcome back, Admin.',
                                   style: TextStyle(
                                       color: Colors.white,
                                       fontSize: 24,
                                       fontWeight: FontWeight.w700)),
-                              SizedBox(height: 8),
+                              const SizedBox(height: 8),
                               Text(
-                                'The system is running optimally. You have 14 transactions awaiting verification.',
-                                style: TextStyle(
+                                'The system is running optimally. You have $_pendingApproval transactions awaiting verification.',
+                                style: const TextStyle(
                                     color: Color(0xFFE3BEB8), fontSize: 16),
                               ),
                             ],
@@ -159,18 +215,21 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  // Stats cards
-                  Row(
-                    children: [
-                      _statCard('REVENUE TODAY', '\$14,290', '+12%'),
-                      const SizedBox(width: 16),
-                      _statCard('TICKETS SOLD', '1,024', '+5%'),
-                      const SizedBox(width: 16),
-                      _statCard('PENDING APPROVAL', '14', 'Action Required'),
-                    ],
+                  // Stat Cards
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        _buildStatCard('REVENUE TODAY', '\$$_totalRevenue', '+12%'),
+                        const SizedBox(width: 16),
+                        _buildStatCard('TICKETS SOLD', _totalTickets.toString(), '+5%'),
+                        const SizedBox(width: 16),
+                        _buildStatCard('PENDING APPROVAL', _pendingApproval.toString(), 'Action Required'),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 24),
-                  // Pending transactions list
+                  // Pending Transactions List
                   Container(
                     decoration: BoxDecoration(
                       color: const Color(0xFF0C0F0F),
@@ -186,9 +245,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                             border: Border(
                                 bottom: BorderSide(color: Color(0xFF5A403C))),
                           ),
-                          child: Row(
+                          child: const Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: const [
+                            children: [
                               Text('Transaksi Pending',
                                   style: TextStyle(
                                       color: Colors.white, fontSize: 16)),
@@ -215,7 +274,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                           )
                         else
                           ..._transactions
-                              .map((t) => _transactionTile(t))
+                              .map((t) => _buildTransactionTile(t))
                               .toList(),
                       ],
                     ),
@@ -223,35 +282,32 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 ],
               ),
             ),
-          ),
-        ],
-      ),
     );
   }
 
-  Widget _drawerItem(String title, bool isActive) {
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: isActive ? const Color(0xFFFFB4A8) : null,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
+  Widget _buildDrawerItem(String title, int index, IconData icon) {
+    final isSelected = _selectedIndex == index;
+    return ListTile(
+      leading: Icon(icon,
+          color:
+              isSelected ? const Color(0xFF690000) : const Color(0xFFE3BEB8)),
+      title: Text(
         title,
         style: TextStyle(
-          color: isActive ? const Color(0xFF690000) : const Color(0xFFE3BEB8),
-          fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
+          color: isSelected ? const Color(0xFF690000) : const Color(0xFFE3BEB8),
+          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
         ),
       ),
+      selected: isSelected,
+      selectedTileColor: const Color(0xFFFFB4A8),
+      onTap: () => _onItemTapped(index),
     );
   }
 
-  Widget _statCard(String label, String value, String change) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(24),
+  Widget _buildStatCard(String label, String value, String change) {
+    return Container(
+      width: 200,
+      padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
           color: const Color(0xFF1E2020),
           borderRadius: BorderRadius.circular(12),
@@ -284,21 +340,24 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             ),
           ],
         ),
-      ),
     );
   }
 
-  Widget _transactionTile(dynamic t) {
+  Widget _buildTransactionTile(dynamic t) {
     final isProcessing = _processing[t['id']] ?? false;
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: const BoxDecoration(
         border: Border(bottom: BorderSide(color: Color(0xFF5A403C))),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Wrap(
+        spacing: 16,
+        runSpacing: 16,
+        alignment: WrapAlignment.spaceBetween,
+        crossAxisAlignment: WrapCrossAlignment.center,
         children: [
           Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               CircleAvatar(
                 backgroundColor: const Color(0xFF8B0000),
@@ -322,7 +381,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               ),
             ],
           ),
-          Row(
+          Wrap(
+            spacing: 12,
             children: [
               ElevatedButton(
                 onPressed: isProcessing
@@ -334,7 +394,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 ),
                 child: const Text('Approve'),
               ),
-              const SizedBox(width: 12),
               OutlinedButton(
                 onPressed: isProcessing
                     ? null

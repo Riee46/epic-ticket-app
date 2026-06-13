@@ -113,6 +113,19 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> getAdminStats() async {
+    final headers = await _getHeaders();
+    final response = await http.get(
+      Uri.parse('$baseUrl/admin/stats'),
+      headers: headers,
+    );
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Gagal mengambil statistik admin');
+    }
+  }
+
   Future<String> verifyPayment(int transactionId, String action) async {
     final headers = await _getHeaders();
     final response = await http.post(

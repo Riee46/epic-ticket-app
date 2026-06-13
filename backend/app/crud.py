@@ -141,5 +141,27 @@ async def mark_qr_used(db: AsyncSession, qr_id: int):
         update(TicketQR)
         .where(TicketQR.id == qr_id)
         .values(used=True, used_at=func.now())
-    )
     await db.commit()
+
+# ========== Admin Stats ==========
+async def get_admin_stats(db: AsyncSession):
+    revenue_result = await db.execute(
+        select(func.sum(Transaction.total_price)).where(Transaction.status == 'paid')
+    )
+    total_revenue = revenue_result.scalar() or 0
+
+    tickets_result = await db.execute(
+        select(func.sum(Transaction.quantity)).where(Transaction.status == 'paid')
+    )
+    tickets_sold = tickets_result.scalar() or 0
+
+    pending_result = await db.execute(
+        select(func.count(Transaction.id)).where(Transaction.status == 'pending')
+    )
+    pending_approval = pending_result.scalar() or 0
+
+    return {
+        "total_revenue": total_revenue,
+        "tickets_sold": tickets_sold,
+        "pending_approval": pending_approval
+    }

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from ..database import get_db
-from ..crud import get_all_pending_transactions, get_transaction_by_id, update_transaction_status, create_ticket_qr
+from ..crud import get_all_pending_transactions, get_transaction_by_id, update_transaction_status, create_ticket_qr, get_admin_stats
 from ..schemas import TransactionOut, VerifyPayment, TicketQRResponse, ScanQRRequest
 from ..dependencies import get_current_admin
 import uuid
@@ -15,6 +15,13 @@ async def get_pending_transactions(
 ):
     transactions = await get_all_pending_transactions(db)
     return transactions
+
+@router.get("/stats")
+async def get_stats(
+    current_admin = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db)
+):
+    return await get_admin_stats(db)
 
 @router.post("/verify-payment")
 async def verify_payment(
