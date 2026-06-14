@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from ..database import get_db
-from ..crud import get_all_pending_transactions, get_transaction_by_id, update_transaction_status, create_ticket_qr, get_admin_stats, get_all_paid_transactions
-from ..schemas import TransactionOut, VerifyPayment, TicketQRResponse, ScanQRRequest
+from ..crud import get_all_pending_transactions, get_transaction_by_id, update_transaction_status, create_ticket_qr, get_admin_stats, get_all_paid_transactions, update_ticket_price
+from ..schemas import TransactionOut, VerifyPayment, TicketQRResponse, ScanQRRequest, TicketUpdate
 from ..dependencies import get_current_admin
 import uuid
 
@@ -65,3 +65,15 @@ async def scan_qr(
         raise HTTPException(status_code=400, detail="Ticket already used")
     await mark_qr_used(db, qr.id)
     return qr
+
+@router.put("/tickets/{ticket_id}")
+async def update_ticket(
+    ticket_id: int,
+    ticket_update: TicketUpdate,
+    current_admin = Depends(get_current_admin),
+    db: AsyncSession = Depends(get_db)
+):
+    updated_ticket = await update_ticket_price(db, ticket_id, ticket_update.price)
+    if not updated_ticket:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+    return {"status": "success", "message": "Ticket price updated", "ticket": {"id": updated_ticket.id, "price": updated_ticket.price}}

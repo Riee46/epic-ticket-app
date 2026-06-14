@@ -170,4 +170,20 @@ class ApiService {
       throw Exception(error['detail'] ?? 'Invalid ticket');
     }
   }
+
+  Future<String> updateTicketPrice(int ticketId, int newPrice) async {
+    final headers = await _getHeaders();
+    final response = await http.put(
+      Uri.parse('$baseUrl/admin/tickets/$ticketId'),
+      headers: headers,
+      body: json.encode({'price': newPrice}),
+    );
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return data['message'] ?? 'Success';
+    } else {
+      final error = json.decode(response.body);
+      throw Exception(error['detail'] ?? 'Update failed');
+    }
+  }
 }

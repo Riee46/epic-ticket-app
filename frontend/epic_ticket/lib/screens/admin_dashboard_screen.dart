@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import 'admin_scan_screen.dart';
 import 'admin_sales_report_screen.dart';
+import 'admin_event_settings_screen.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -79,19 +80,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           context, MaterialPageRoute(builder: (_) => const AdminSalesReportScreen()));
     } else if (index == 3) {
       // Event Settings
-      showDialog(
-        context: context,
-        builder: (_) => AlertDialog(
-          title: const Text('Event Settings'),
-          content: const Text('Fitur sedang dalam pengembangan'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('OK'),
-            ),
-          ],
-        ),
-      );
+      Navigator.push(
+          context, MaterialPageRoute(builder: (_) => const AdminEventSettingsScreen()));
     }
   }
 

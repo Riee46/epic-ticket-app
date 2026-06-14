@@ -23,6 +23,16 @@ async def update_ticket_quota(db: AsyncSession, ticket_id: int, quantity: int):
         return True
     return False
 
+async def update_ticket_price(db: AsyncSession, ticket_id: int, new_price: int):
+    ticket = await get_ticket_by_id(db, ticket_id)
+    if ticket:
+        ticket.price = new_price
+        db.add(ticket)
+        await db.commit()
+        await db.refresh(ticket)
+        return ticket
+    return None
+
 async def create_transaction(
     db: AsyncSession,
     user_id: int,
